@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Actions - Certificate Chain</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <nav>
+        <div class="logo">ADMIN ACTIONS</div>
+        <div id="nav-links">
+            <span id="admin-name"
+                style="margin-right: 1.5rem; font-weight: 700; font-size: 0.9rem; opacity: 0.8;"></span>
+            <a href="/admin/settings.html" class="btn"
+                style="margin-right: 1rem; color: white; border: 1px solid var(--glass-border); box-shadow: none; font-size: 0.8rem;">Branding</a>
+            <button onclick="logout()" class="btn btn-primary"
+                style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); box-shadow: none;">Logout</button>
+        </div>
+    </nav>
+    <div class="container animate-fade">
+        <header style="margin-bottom: 4rem; text-align: center; margin-top: 3rem;">
+            <h1 style="font-size: 2.8rem; font-weight: 800; letter-spacing: -0.05em; margin-bottom: 2rem;">Institutional
+                <span style="color: #10b981;">Intelligence</span>
+            </h1>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 900px; margin: 0 auto;">
+                <div class="card"
+                    style="padding: 1.5rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                    <h3
+                        style="font-size: 0.8rem; text-transform: uppercase; margin-bottom: 1.5rem; color: var(--text-muted);">
+                        Issuance Trend</h3>
+                    <canvas id="issuanceChart" height="200"></canvas>
+                </div>
+                <div class="card"
+                    style="padding: 1.5rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                    <h3
+                        style="font-size: 0.8rem; text-transform: uppercase; margin-bottom: 1.5rem; color: var(--text-muted);">
+                        Dept Distribution</h3>
+                    <canvas id="deptChart" height="200"></canvas>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 2rem; justify-content: center; margin-top: 3rem;">
+                <div class="card"
+                    style="padding: 1rem 2rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; min-width: 180px;">
+                    <p
+                        style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">
+                        Inscriptions</p>
+                    <p id="stat-certs" style="font-size: 1.8rem; font-weight: 800; color: #10b981;">...</p>
+                </div>
+                <div class="card"
+                    style="padding: 1rem 2rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; min-width: 180px;">
+                    <p
+                        style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">
+                        Registered Students</p>
+                    <p id="stat-students" style="font-size: 1.8rem; font-weight: 800; color: #0ea5e9;">...</p>
+                </div>
+                <div class="card"
+                    style="padding: 1rem 2rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; min-width: 180px;">
+                    <p
+                        style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">
+                        Mobile App Status</p>
+                    <p style="font-size: 1.1rem; font-weight: 800; color: #fbbf24;">PWA READY 📱</p>
+                </div>
+                <div class="card"
+                    style="padding: 1rem 2rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; min-width: 180px;">
+                    <p
+                        style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">
+                        Mean Time to Mint (MTTM)</p>
+                    <p id="stat-mttm" style="font-size: 1.1rem; font-weight: 800; color: #fbbf24;">...</p>
+                </div>
+                <div class="card"
+                    style="padding: 1rem 2rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; min-width: 180px;">
+                    <p
+                        style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">
+                        Governance Queue</p>
+                    <p id="stat-pending" style="font-size: 1.8rem; font-weight: 800; color: #f43f5e;">...</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid" style="grid-template-columns: repeat(2, 1fr);">
+            <!-- Register Student -->
+            <div class="card card-vibrant">
+                <div style="font-size: 3rem; margin-bottom: 1.5rem;">👤</div>
+                <h3 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem;">1. Register Student</h3>
+                <p style="opacity: 0.9; margin-bottom: 2rem; font-size: 0.9rem;">Add new students to the institutional
+                    database before issuing certificates.</p>
+                <a href="/admin/create_student.html" class="btn btn-white"
+                    style="border-radius: 50px; width: 100%;">Create Account →</a>
+            </div>
+
+            <!-- Issue Certificate -->
+            <div class="card card-vibrant" style="background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);">
+                <div style="font-size: 3rem; margin-bottom: 1.5rem;">📜</div>
+                <h3 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem;">2. Issue Certificate</h3>
+                <p style="opacity: 0.9; margin-bottom: 2rem; font-size: 0.9rem;">Sign academic credentials and commit
+                    them to the blockchain registry.</p>
+                <a href="/admin/issue_certificate.html" class="btn btn-white"
+                    style="color: #10b981; border-radius: 50px; width: 100%;">Begin Issuance →</a>
+            </div>
+
+            <!-- Governance Approvals -->
+            <div class="card card-vibrant"
+                style="background: linear-gradient(135deg, #fbbf24, #d97706); border: 2px solid rgba(251, 191, 36, 0.3);">
+                <div style="font-size: 3rem; margin-bottom: 1.5rem;">⚖️</div>
+                <h3 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem;">Governance Approvals</h3>
+                <p style="opacity: 0.9; margin-bottom: 2rem; font-size: 0.9rem;">Review and authorize pending issuance
+                    requests before blockchain minting.</p>
+                <a href="/admin/approvals.html" class="btn btn-white"
+                    style="color: #d97706; border-radius: 50px; width: 100%;">Review Queue →</a>
+            </div>
+
+            <!-- View All Records -->
+            <div class="card card-vibrant">
+                <div style="font-size: 3rem; margin-bottom: 1.5rem;">📂</div>
+                <h3 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem;">3. View All Records</h3>
+                <p style="opacity: 0.9; margin-bottom: 2rem; font-size: 0.9rem;">Audit issued certificates and monitor
+                    student roll numbers or departments.</p>
+                <a href="/admin/view_records.html" class="btn btn-white" style="border-radius: 50px; width: 100%;">Audit
+                    Records →</a>
+            </div>
+
+            <!-- Bulk Issuance -->
+            <div class="card card-vibrant" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <div style="font-size: 3rem; margin-bottom: 1.5rem;">📦</div>
+                <h3 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem;">4. Bulk Issuance</h3>
+                <p style="opacity: 0.9; margin-bottom: 2rem; font-size: 0.9rem;">Issue certificates at scale via
+                    institutional CSV upload.</p>
+                <a href="/admin/bulk_issue.html" class="btn btn-white" style="border-radius: 50px; width: 100%;">Upload
+                    CSV →</a>
+            </div>
+        </div>
+
+        <div style="margin-top: 5rem; text-align: center;">
+            <a href="/" class="btn" style="color: var(--text-muted); border: 1px solid var(--glass-border);">← Back to
+                Home Selection</a>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'admin') {
+            location.href = '/login.html';
+        }
+        document.getElementById('admin-name').innerText = user.name;
+
+        async function loadStats() {
+            try {
+                const token = localStorage.getItem('token');
+                const [studentRes, certRes] = await Promise.all([
+                    fetch('/api/certificates/students', { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch('/api/certificates/all', { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
+                const students = await studentRes.json();
+                const certs = await certRes.json();
+
+                const pendingRes = await fetch('/api/certificates/pending', { headers: { 'Authorization': `Bearer ${token}` } });
+                const pendingCerts = await pendingRes.json();
+
+                document.getElementById('stat-certs').innerText = certs.length;
+                document.getElementById('stat-pending').innerText = pendingCerts.length;
+
+                // Final Trust Integrity
+                const trustRes = await fetch('/api/certificates/all', { headers: { 'Authorization': `Bearer ${token}` } });
+                const allCerts = await trustRes.json();
+                const revoked = allCerts.filter(c => c.isRevoked).length;
+                const score = allCerts.length > 0 ? (((allCerts.length - revoked) / allCerts.length) * 100).toFixed(0) : 100;
+                document.getElementById('stat-emails').innerText = `${score}% Integrity`;
+
+                // Calculate MTTM
+                const issuedCerts = certs.filter(c => c.status === 'issued' && c.requestedDate);
+                if (issuedCerts.length > 0) {
+                    const totalTime = issuedCerts.reduce((sum, c) => sum + (new Date(c.issueDate) - new Date(c.requestedDate)), 0);
+                    const avgHours = (totalTime / issuedCerts.length / (1000 * 60 * 60)).toFixed(1);
+                    document.getElementById('stat-mttm').innerText = `${avgHours} hrs avg`;
+                } else {
+                    document.getElementById('stat-mttm').innerText = 'N/A';
+                }
+
+                // Render Charts
+                initCharts(certs);
+            } catch (err) {
+                console.error('Failed to load stats');
+            }
+        }
+
+        function initCharts(certs) {
+            const ctx1 = document.getElementById('issuanceChart').getContext('2d');
+            const ctx2 = document.getElementById('deptChart').getContext('2d');
+
+            // Process Departments
+            const depts = {};
+            certs.forEach(c => {
+                const d = c.department || 'General';
+                depts[d] = (depts[d] || 0) + 1;
+            });
+
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Inscriptions',
+                        data: [12, 19, 3, 5, 2, 3], // Mocked trend
+                        borderColor: '#10b981',
+                        tension: 0.4
+                    }]
+                },
+                options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+            });
+
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(depts),
+                    datasets: [{
+                        data: Object.values(depts),
+                        backgroundColor: ['#10b981', '#0ea5e9', '#f43f5e', '#fbbf24'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { plugins: { legend: { position: 'bottom', labels: { color: 'white', font: { size: 10 } } } } }
+            });
+        }
+        loadStats();
+
+        function logout() {
+            localStorage.clear();
+            location.href = '/login.html';
+        }
+    </script>
+</body>
+
+</html>

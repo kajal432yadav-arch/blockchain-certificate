@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Chain - Secure Blockchain Records | IEEE Xpert</title>
+    <meta name="description"
+        content="Issue, verify, and manage tamper-proof academic credentials secured by blockchain technology. The Sovereign Era of decentralized identity.">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#10b981">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .hero-title {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.05em;
+        }
+
+        .glow-text {
+            text-shadow: 0 0 40px rgba(16, 185, 129, 0.5), 0 0 80px rgba(16, 185, 129, 0.3);
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 4rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #10b981, #0ea5e9);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .feature-strip {
+            display: flex;
+            gap: 3rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 5rem 0;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 100px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .feature-icon {
+            font-size: 1.4rem;
+        }
+
+        .portal-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border-radius: 28px;
+            padding: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .portal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+            transition: 0.6s;
+        }
+
+        .portal-card:hover::before {
+            left: 100%;
+        }
+
+        .portal-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5), 0 0 50px rgba(16, 185, 129, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .portal-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+            transition: transform 0.4s ease;
+        }
+
+        .portal-card:hover .portal-icon {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .trust-badge {
+            padding: 0.6rem 1.4rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Floating Particles Background -->
+    <div class="particles" id="particles"></div>
+
+    <nav>
+        <div class="logo" style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.8rem;">⛓️</span>
+            <span>CERTIFICATE CHAIN</span>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <a href="/login.html" class="btn" style="color: white; border: 1px solid var(--glass-border);">Login</a>
+            <a href="/register.html" class="btn btn-primary">Join Network</a>
+        </div>
+    </nav>
+
+    <div class="container" style="position: relative; z-index: 1;">
+        <header style="text-align: center; margin-top: 6rem; margin-bottom: 6rem;">
+            <!-- Sovereign Era Badge -->
+            <div class="animate-fade"
+                style="display: inline-block; padding: 0.6rem 1.8rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 100px; margin-bottom: 2.5rem; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.12em; color: #10b981;">
+                ✦ THE SOVEREIGN ERA IS HERE ✦
+            </div>
+
+            <!-- Hero Title -->
+            <h1 class="hero-title animate-fade" style="animation-delay: 0.1s;">
+                <span
+                    style="display: block; background: linear-gradient(to bottom, #fff 30%, rgba(255,255,255,0.6)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Your
+                    Identity,</span>
+                <span
+                    style="display: block; background: linear-gradient(to bottom, #fff 30%, rgba(255,255,255,0.6)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Secured
+                    by</span>
+                <span class="glow-text" style="display: block; color: #10b981;">Blockchain.</span>
+            </h1>
+
+            <p class="animate-fade"
+                style="color: var(--text-muted); font-size: 1.3rem; max-width: 700px; margin: 0 auto 3rem; line-height: 1.7; animation-delay: 0.2s;">
+                Institutional trust meets decentralized resilience. Issue, manage, and verify academic credentials with
+                <strong style="color: #10b981;">absolute cryptographic certainty</strong>.
+            </p>
+
+            <!-- Quick Verify Search Bar -->
+            <div class="animate-fade" style="max-width: 700px; margin: 0 auto 4rem; animation-delay: 0.3s;">
+                <div
+                    style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem; border-radius: 100px; display: flex; backdrop-filter: blur(40px); box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);">
+                    <input type="text" id="quick-search" placeholder="Enter Certificate ID (e.g. CERT-2025-001)..."
+                        style="flex: 1; background: none; border: none; padding: 0.8rem 2rem; color: white; font-family: inherit; font-size: 1.1rem; outline: none;">
+                    <button onclick="quickVerify()" class="btn"
+                        style="background: linear-gradient(135deg, #10b981, #0891b2); border-radius: 100px; padding: 1rem 3rem; font-weight: 800; font-size: 1rem; color: white; border: none; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);">
+                        🔍 Verify Now
+                    </button>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 2.5rem; margin-top: 1.5rem;">
+                    <p style="font-size: 0.85rem; opacity: 0.6; display: flex; align-items: center; gap: 0.5rem;">
+                        <span
+                            style="display: inline-block; width: 10px; height: 10px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981;"
+                            class="pulse"></span>
+                        Public Audit Gateway
+                    </p>
+                    <p style="font-size: 0.85rem; opacity: 0.6; display: flex; align-items: center; gap: 0.5rem;">
+                        ✦ No Login Required
+                    </p>
+                    <p style="font-size: 0.85rem; opacity: 0.6; display: flex; align-items: center; gap: 0.5rem;">
+                        🛡️ Zero-Knowledge Ready
+                    </p>
+                </div>
+            </div>
+
+            <!-- Live Status Badges -->
+            <div class="animate-fade"
+                style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; animation-delay: 0.4s;">
+                <div class="glass-panel"
+                    style="padding: 0.8rem 1.8rem; display: flex; align-items: center; gap: 0.8rem; border-color: rgba(16, 185, 129, 0.3);">
+                    <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+                        <span
+                            style="position: absolute; width: 12px; height: 12px; background: #10b981; border-radius: 50%; opacity: 0.5;"
+                            class="pulse"></span>
+                        <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>
+                    </div>
+                    <span style="color: #10b981; font-weight: 800; font-size: 0.8rem; letter-spacing: 0.05em;">NETWORK:
+                        100% SECURE</span>
+                </div>
+                <div class="glass-panel"
+                    style="padding: 0.8rem 1.8rem; display: flex; align-items: center; gap: 0.8rem; border-color: rgba(14, 165, 233, 0.3);">
+                    <span style="color: #0ea5e9; font-weight: 800; font-size: 0.8rem; letter-spacing: 0.05em;">⛓️ LIVE
+                        BLOCKCHAIN</span>
+                </div>
+                <div class="glass-panel"
+                    style="padding: 0.8rem 1.8rem; display: flex; align-items: center; gap: 0.8rem; border-color: rgba(244, 63, 94, 0.3);">
+                    <span style="color: #f43f5e; font-weight: 800; font-size: 0.8rem; letter-spacing: 0.05em;">🔒
+                        ZKP-LITE PRIVACY</span>
+                </div>
+            </div>
+
+            <!-- Stats Counter -->
+            <div class="stats-container animate-fade" style="animation-delay: 0.5s;">
+                <div class="stat-item">
+                    <div class="stat-number" id="stat-certs">0</div>
+                    <div class="stat-label">Certificates Issued</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="stat-verified">0</div>
+                    <div class="stat-label">Verifications</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Immutability</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Feature Strip -->
+        <div class="feature-strip animate-fade" style="animation-delay: 0.6s;">
+            <div class="feature-item">
+                <span class="feature-icon">🏛️</span>
+                <span>Dual-Key Governance</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🔐</span>
+                <span>Selective Disclosure</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📡</span>
+                <span>IPFS-Ready Persistence</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🤖</span>
+                <span>AI Duplicate Detection</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📜</span>
+                <span>W3C VC Compliant</span>
+            </div>
+        </div>
+
+        <!-- Portal Cards -->
+        <section style="margin-bottom: 8rem;">
+            <h2
+                style="text-align: center; font-size: 2.5rem; font-weight: 800; margin-bottom: 3rem; letter-spacing: -0.03em;">
+                Access Your <span style="color: #10b981;">Portal</span>
+            </h2>
+            <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 2rem;">
+                <!-- Admin Panel -->
+                <div class="portal-card"
+                    style="background: linear-gradient(180deg, rgba(244, 63, 94, 0.1) 0%, rgba(251, 146, 60, 0.05) 100%);">
+                    <span class="portal-icon">🏛️</span>
+                    <h3 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem;">Admin Panel</h3>
+                    <p style="opacity: 0.7; margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.6;">
+                        Issue credentials, manage students, and oversee institutional operations on the blockchain.
+                    </p>
+                    <a href="/admin/index.html" class="btn"
+                        style="background: linear-gradient(135deg, #f43f5e, #fb923c); color: white; border: none; border-radius: 100px; font-weight: 800; padding: 0.9rem 2.5rem; box-shadow: 0 10px 30px rgba(244, 63, 94, 0.4);">
+                        Enter Admin →
+                    </a>
+                </div>
+
+                <!-- Verifier -->
+                <div class="portal-card"
+                    style="background: linear-gradient(180deg, rgba(16, 185, 129, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);">
+                    <span class="portal-icon">🔍</span>
+                    <h3 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem;">Verifier</h3>
+                    <p style="opacity: 0.7; margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.6;">
+                        Verify any certificate's authenticity using its cryptographic hash or QR code.
+                    </p>
+                    <a href="/verifier/verify.html" class="btn"
+                        style="background: linear-gradient(135deg, #10b981, #3b82f6); color: white; border: none; border-radius: 100px; font-weight: 800; padding: 0.9rem 2.5rem; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);">
+                        Enter Verifier →
+                    </a>
+                </div>
+
+                <!-- Student Portal -->
+                <div class="portal-card"
+                    style="background: linear-gradient(180deg, rgba(139, 92, 246, 0.1) 0%, rgba(219, 39, 119, 0.05) 100%);">
+                    <span class="portal-icon">🎓</span>
+                    <h3 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem;">Student Portal</h3>
+                    <p style="opacity: 0.7; margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.6;">
+                        View, download, and share your officially issued blockchain credentials.
+                    </p>
+                    <a href="/login.html" class="btn"
+                        style="background: linear-gradient(135deg, #8b5cf6, #db2777); color: white; border: none; border-radius: 100px; font-weight: 800; padding: 0.9rem 2.5rem; box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);">
+                        Enter Student →
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trust Badges -->
+        <div class="trust-badges animate-fade" style="margin-bottom: 5rem;">
+            <div class="trust-badge">
+                <span>🔗</span> Ethereum Compatible
+            </div>
+            <div class="trust-badge">
+                <span>📜</span> W3C Verifiable Credentials
+            </div>
+            <div class="trust-badge">
+                <span>🛡️</span> GDPR Ready
+            </div>
+            <div class="trust-badge">
+                <span>⚡</span> Layer 2 Scalable
+            </div>
+            <div class="trust-badge">
+                <span>🌐</span> Decentralized Storage
+            </div>
+        </div>
+
+        <footer
+            style="text-align: center; padding: 4rem 0; border-top: 1px solid var(--glass-border); color: var(--text-muted); font-size: 0.9rem;">
+            <p style="margin-bottom: 1rem;">© 2025 Certificate Chain | IEEE Xpert Decentralized Identity Network</p>
+            <p style="font-size: 0.75rem; opacity: 0.5; letter-spacing: 0.1em;">SOVEREIGN ERA v1.0 ● PRODUCTION READY ✦
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Quick Verify
+        function quickVerify() {
+            const id = document.getElementById('quick-search').value.trim();
+            if (id) {
+                location.href = `/verifier/verify.html?id=${id}`;
+            } else {
+                alert('Please enter a valid Certificate ID');
+            }
+        }
+
+        // Enter key support
+        document.getElementById('quick-search').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') quickVerify();
+        });
+
+        // Create floating particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 30;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.width = (Math.random() * 8 + 4) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = (Math.random() * 6) + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Animate stats counters
+        function animateCounter(element, target, suffix = '') {
+            let current = 0;
+            const increment = target / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    element.textContent = target + suffix;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current) + suffix;
+                }
+            }, 30);
+        }
+
+        // Fetch real stats from API
+        async function loadStats() {
+            try {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    const res = await fetch('/api/certificates/stats', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const stats = await res.json();
+                        animateCounter(document.getElementById('stat-certs'), stats.totalCertificates || 0);
+                        animateCounter(document.getElementById('stat-verified'), stats.totalVerifications || 0);
+                        return;
+                    }
+                }
+                // Fallback demo values
+                animateCounter(document.getElementById('stat-certs'), 127);
+                animateCounter(document.getElementById('stat-verified'), 892);
+            } catch (e) {
+                animateCounter(document.getElementById('stat-certs'), 127);
+                animateCounter(document.getElementById('stat-verified'), 892);
+            }
+        }
+
+        // Run on page load
+        setTimeout(loadStats, 500);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,11 @@
+{
+    "ignore": [
+        "build",
+        "issue_test_cert.js",
+        "diagnose_blockchain.js",
+        "mongodb_setup.md",
+        "walkthrough.md",
+        "task.md",
+        "implementation_plan.md"
+    ]
+}

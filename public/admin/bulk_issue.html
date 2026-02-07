@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Issuance - Certificate Chain</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+</head>
+
+<body>
+    <nav>
+        <div class="logo">BATCH OPERATIONS</div>
+        <a href="/admin/index.html" class="btn"
+            style="color: white; border: 1px solid var(--glass-border);">Dashboard</a>
+    </nav>
+
+    <div class="container animate-fade">
+        <header style="margin-bottom: 3rem; text-align: center; margin-top: 2rem;">
+            <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.05em;">Bulk <span
+                    style="color: #10b981;">Issuance</span></h1>
+            <p style="opacity: 0.7; margin-top: 0.5rem;">Upload CSV to issue certificates at institutional scale.</p>
+        </header>
+
+        <div class="card" style="max-width: 800px; margin: 0 auto; padding: 3rem;">
+            <div id="drop-zone"
+                style="border: 2px dashed rgba(255,255,255,0.2); border-radius: 20px; padding: 4rem 2rem; text-align: center; cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.02);">
+                <div style="font-size: 4rem; margin-bottom: 1.5rem;">📄</div>
+                <h3 style="margin-bottom: 1rem;">Drop CSV file here</h3>
+                <p style="color: var(--text-muted);">Format: rollNumber, courseName, university</p>
+                <input type="file" id="csvFile" accept=".csv" style="display: none;">
+            </div>
+
+            <div id="preview-section" style="display: none; margin-top: 3rem;">
+                <h3 style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    Batch Preview
+                    <span id="batch-count" class="badge" style="background: #0ea5e9;">0 Records</span>
+                </h3>
+                <div
+                    style="max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 15px; padding: 1rem;">
+                    <table id="previewTable"
+                        style="margin-top: 0; background: none; border: none; backdrop-filter: none;">
+                        <thead>
+                            <tr style="background: none;">
+                                <th>Roll No</th>
+                                <th>Course</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewBody"></tbody>
+                    </table>
+                </div>
+                <button id="processBatch" class="btn btn-primary"
+                    style="width: 100%; margin-top: 2rem; padding: 1.2rem; font-weight: 800; background: #10b981;">Commit
+                    Batch to Blockchain</button>
+            </div>
+
+            <div id="progress-section" style="display: none; margin-top: 2rem; text-align: center;">
+                <div
+                    style="height: 8px; width: 100%; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-bottom: 1rem;">
+                    <div id="progress-bar" style="height: 100%; width: 0%; background: #10b981; transition: 0.3s;">
+                    </div>
+                </div>
+                <p id="progress-status" style="font-size: 0.9rem; opacity: 0.8;">Processing: 0 / 0</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('csvFile');
+        const previewSection = document.getElementById('preview-section');
+        const previewBody = document.getElementById('previewBody');
+        const processBtn = document.getElementById('processBatch');
+
+        let batchData = [];
+        let existingCerts = [];
+
+        // Load students and existing certs to verify IDs and duplicates
+        async function init() {
+            const [stdRes, certRes] = await Promise.all([
+                fetch('/api/certificates/students', { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch('/api/certificates/all', { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+            const students = await stdRes.json();
+            existingCerts = await certRes.json();
+            students.forEach(s => studentsMap[s.rollNumber] = s);
+        }
+        init();
+
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+
+        function handleFile(file) {
+            if (!file) return;
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function (results) {
+                    batchData = results.data;
+                    renderPreview();
+                }
+            });
+        }
+
+        function renderPreview() {
+            previewBody.innerHTML = '';
+            document.getElementById('batch-count').innerText = `${batchData.length} Records`;
+            batchData.forEach(row => {
+                const tr = document.createElement('tr');
+                const student = studentsMap[row.rollNumber];
+
+                // AI Duplicate Check
+                const isDuplicate = existingCerts.some(c =>
+                    c.rollNumber === row.rollNumber &&
+                    c.courseName.toLowerCase() === row.courseName.toLowerCase()
+                );
+
+                tr.innerHTML = `
+                    <td>${row.rollNumber}</td>
+                    <td>${row.courseName}</td>
+                    <td>
+                        ${student ? '<span style="color: #10b981;">Valid</span>' : '<span style="color: #f43f5e;">Student Not Found</span>'}
+                        ${isDuplicate ? ' <span class="badge" style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; font-size: 0.6rem;">DUP PROTECT 🛡️</span>' : ''}
+                    </td>
+                `;
+                if (isDuplicate) tr.style.background = "rgba(244, 63, 94, 0.05)";
+                previewBody.appendChild(tr);
+            });
+            previewSection.style.display = 'block';
+            dropZone.style.display = 'none';
+        }
+
+        processBtn.onclick = async () => {
+            if (!confirm(`Issue ${batchData.length} certificates? This will stage them for governance approval.`)) return;
+
+            processBtn.disabled = true;
+            document.getElementById('progress-section').style.display = 'block';
+            const bar = document.getElementById('progress-bar');
+            const status = document.getElementById('progress-status');
+
+            for (let i = 0; i < batchData.length; i++) {
+                const row = batchData[i];
+                const student = studentsMap[row.rollNumber];
+
+                if (!student) continue;
+
+                try {
+                    const res = await fetch('/api/certificates/issue', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            studentId: student._id,
+                            studentName: student.name,
+                            courseName: row.courseName,
+                            university: row.university || 'IEEE Xpert Global University',
+                            requestOnly: true // Governance Mode
+                        })
+                    });
+
+                    if (!res.ok) console.error('Failed row', i);
+                } catch (err) {
+                    console.error('Network error row', i);
+                }
+
+                const pct = ((i + 1) / batchData.length) * 100;
+                bar.style.width = `${pct}%`;
+                status.innerText = `Processing: ${i + 1} / ${batchData.length}`;
+            }
+
+            alert('Batch requests staged for approval!');
+            location.href = '/admin/approvals.html';
+        };
+    </script>
+</body>
+
+</html>

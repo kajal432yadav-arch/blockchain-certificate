@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Student Records - Certificate Chain</title>
+    <meta name="description" content="View all student records and issued certificates.">
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0d9488 0%, #0891b2 50%, #0e7490 100%);
+            min-height: 100vh;
+        }
+
+        .nav-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            color: white;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: white;
+        }
+
+        .nav-title {
+            font-weight: 800;
+            font-size: 1.3rem;
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: linear-gradient(180deg, rgba(139, 92, 246, 0.3) 0%, rgba(168, 85, 247, 0.2) 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .records-table thead {
+            background: rgba(139, 92, 246, 0.5);
+        }
+
+        .records-table th {
+            padding: 1.2rem 1.5rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .records-table td {
+            padding: 1.2rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: top;
+        }
+
+        .records-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .records-table tr:hover td {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .roll-number {
+            color: #22d3ee;
+            font-weight: 700;
+        }
+
+        .dept-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .cert-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .cert-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cert-hash {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #f472b6;
+            word-break: break-all;
+            margin-bottom: 0.5rem;
+        }
+
+        .cert-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .cert-action-link {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .cert-action-link:hover {
+            color: white;
+        }
+
+        .no-certs {
+            color: rgba(255, 255, 255, 0.4);
+            font-style: italic;
+            font-size: 0.85rem;
+        }
+
+        .loading-row td {
+            text-align: center;
+            padding: 3rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav-header">
+        <a href="/admin/index.html" class="nav-link">← Back to Dashboard</a>
+        <span class="nav-title">All Student Records</span>
+    </div>
+
+    <div class="container animate-fade">
+        <table class="records-table">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Roll Number</th>
+                    <th>Department</th>
+                    <th>Certificates Issued</th>
+                </tr>
+            </thead>
+            <tbody id="recordsBody">
+                <tr class="loading-row">
+                    <td colspan="4">Loading student records...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('token');
+
+        if (!user || user.role !== 'admin') {
+            location.href = '/login.html';
+        }
+
+        async function loadRecords() {
+            try {
+                // Load students
+                const studentsRes = await fetch('/api/auth/students', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const students = await studentsRes.json();
+
+                // Load all certificates
+                const certsRes = await fetch('/api/certificates', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const certificates = await certsRes.json();
+
+                // Group certificates by student
+                const certsByStudent = {};
+                certificates.forEach(cert => {
+                    const sid = cert.studentId?._id || cert.studentId;
+                    if (!certsByStudent[sid]) {
+                        certsByStudent[sid] = [];
+                    }
+                    certsByStudent[sid].push(cert);
+                });
+
+                const tbody = document.getElementById('recordsBody');
+
+                if (students.length === 0) {
+                    tbody.innerHTML = '<tr class="loading-row"><td colspan="4">No student records found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = students.map(student => {
+                    const studentCerts = certsByStudent[student._id] || [];
+
+                    let certsHtml = '';
+                    if (studentCerts.length === 0) {
+                        certsHtml = '<span class="no-certs">No certificates issued.</span>';
+                    } else {
+                        certsHtml = '<div class="cert-list">' + studentCerts.map(cert => `
+                            <div class="cert-item">
+                                <div class="cert-hash">Hash: ${cert.txHash || cert.certificateId || 'Pending...'}</div>
+                                <div class="cert-actions">
+                                    <a href="/api/certificates/pdf/${cert._id}" target="_blank" class="cert-action-link">View PDF</a>
+                                    <span style="color: rgba(255,255,255,0.3);">|</span>
+                                    <a href="/api/certificates/photo/${cert._id}" target="_blank" class="cert-action-link">View Photo</a>
+                                </div>
+                            </div>
+                        `).join('') + '</div>';
+                    }
+
+                    return `
+                        <tr>
+                            <td>${student.name}</td>
+                            <td class="roll-number">${student.rollNumber || 'N/A'}</td>
+                            <td><span class="dept-badge">${student.department || 'N/A'}</span></td>
+                            <td>${certsHtml}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error('Failed to load records:', err);
+                document.getElementById('recordsBody').innerHTML =
+                    '<tr class="loading-row"><td colspan="4">Failed to load records. Please try again.</td></tr>';
+            }
+        }
+
+        loadRecords();
+    </script>
+</body>
+
+</html>

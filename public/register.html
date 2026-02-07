@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Network - Certificate Chain</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem;">
+    <div class="container animate-fade" style="max-width: 480px; padding: 0;">
+        <div class="card card-vibrant" style="padding: 3.5rem 2.5rem; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 2rem;">🛡️</div>
+            <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 1rem; letter-spacing: -0.05em;">Join the
+                Network</h1>
+            <p style="opacity: 0.8; margin-bottom: 3rem; font-size: 0.95rem;">Create your institutional or student
+                identity on the Certificate Chain blockchain.</p>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <input type="text" id="name" required placeholder="Full Name / Institution Name"
+                        style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.2); text-align: center;">
+                </div>
+                <div class="form-group">
+                    <input type="email" id="email" required placeholder="Official Email Address"
+                        style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.2); text-align: center;">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" required placeholder="Secure Password"
+                        style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.2); text-align: center;">
+                </div>
+                <div class="form-group">
+                    <select id="role"
+                        style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.2); text-align: center; text-align-last: center;">
+                        <option value="student">I am a Student</option>
+                        <option value="admin">I am an Administrator</option>
+                        <option value="verifier">I am a Verifier</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-white"
+                    style="width: 100%; margin-top: 1.5rem; font-weight: 800; padding: 1.2rem; color: #db2777;">Create
+                    My Account</button>
+            </form>
+
+            <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem;">
+                <p style="font-size: 0.9rem; opacity: 0.8;">Already a member? <a href="/login.html"
+                        style="color: white; font-weight: 700; text-decoration: underline;">Login here</a></p>
+                <div style="margin-top: 1rem;">
+                    <a href="/" style="color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.8rem;">← Back
+                        to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = 'Creating Identity...';
+            btn.disabled = true;
+
+            const userData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                role: document.getElementById('role').value
+            };
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                if (res.ok) {
+                    alert('Registration successful! You can now sign in.');
+                    location.href = '/login.html';
+                } else {
+                    const data = await res.json();
+                    alert(data.error || 'Registration failed');
+                }
+            } catch (err) {
+                alert('Connection failure');
+            } finally {
+                btn.innerText = 'Create My Account';
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+
+</html>

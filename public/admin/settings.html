@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institutional Settings - Certificate Chain</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+    <nav>
+        <div class="logo">INSTITUTIONAL BRANDING</div>
+        <a href="/admin/index.html" class="btn"
+            style="color: white; border: 1px solid var(--glass-border);">Dashboard</a>
+    </nav>
+
+    <div class="container animate-fade">
+        <header style="margin-bottom: 3rem; text-align: center; margin-top: 2rem;">
+            <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.05em;">Portal <span
+                    style="color: #0ea5e9;">Settings</span></h1>
+            <p style="opacity: 0.7; margin-top: 0.5rem;">Configure your institutional identity and verification
+                branding.</p>
+        </header>
+
+        <div class="card" style="max-width: 600px; margin: 0 auto; padding: 3rem;">
+            <form id="settingsForm">
+                <div style="margin-bottom: 2rem;">
+                    <label
+                        style="display: block; margin-bottom: 0.8rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Institutional
+                        Name</label>
+                    <input type="text" id="instName" class="input" placeholder="e.g. IEEE Xpert Global University"
+                        style="width: 100%;" required>
+                </div>
+
+                <div style="margin-bottom: 2.5rem;">
+                    <label
+                        style="display: block; margin-bottom: 0.8rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Digital
+                        Signature (Base64/URL)</label>
+                    <input type="text" id="instSig" class="input" placeholder="Enter image URL or Base64 data"
+                        style="width: 100%;">
+                </div>
+
+                <div
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; background: rgba(255,255,255,0.05); padding: 1.2rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div>
+                        <p style="color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase;">Portal
+                            Version</p>
+                        <p style="font-weight: 700;">Vibrant 2.0 (Enterprise)</p>
+                    </div>
+                    <div>
+                        <p style="color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase;">License
+                            Status</p>
+                        <p style="color: #10b981; font-weight: 700;">PREMIUM ACTIVE</p>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; padding: 1rem; font-weight: 800; background: #0ea5e9;">Save Identity
+                    Configuration</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const form = document.getElementById('settingsForm');
+
+        // Load current settings
+        const settings = JSON.parse(localStorage.getItem('portal_settings')) || {
+            name: 'IEEE Xpert Global University',
+            sig: '',
+            theme: 'emerald'
+        };
+        document.getElementById('instName').value = settings.name;
+        document.getElementById('instSig').value = settings.sig;
+        document.getElementById('instTheme').value = settings.theme;
+
+        function updatePreview() {
+            const theme = document.getElementById('instTheme').value;
+            const preview = document.getElementById('themePreview');
+            preview.className = `card theme-${theme}`;
+            preview.style.background = `var(--bg-${theme})`;
+        }
+        updatePreview();
+
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            const newSettings = {
+                name: document.getElementById('instName').value,
+                sig: document.getElementById('instSig').value,
+                theme: document.getElementById('instTheme').value
+            };
+            localStorage.setItem('portal_settings', JSON.stringify(newSettings));
+            alert('Institutional branding & template updated successfully!');
+            location.href = '/admin/index.html';
+        };
+    </script>
+</body>
+
+</html>

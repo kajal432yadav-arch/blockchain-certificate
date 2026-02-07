@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Governance Approvals - Certificate Chain</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav>
+        <div class="logo">GOVERNANCE PORTAL</div>
+        <a href="/admin/index.html" class="btn"
+            style="color: white; border: 1px solid var(--glass-border);">Dashboard</a>
+    </nav>
+    <div class="container animate-fade">
+        <header style="margin-bottom: 3rem; text-align: center; margin-top: 2rem;">
+            <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.05em;">Pending <span
+                    style="color: #fbbf24;">Approvals</span></h1>
+            <p style="opacity: 0.7;">Super-Admin review required for blockchain inscription.</p>
+        </header>
+
+        <div id="pendingList" style="display: grid; gap: 1.5rem;">
+            <div class="card" style="text-align: center; opacity: 0.6;">Scanning governance queue...</div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        async function loadPending() {
+            try {
+                const res = await fetch('/api/certificates/pending', { headers: { 'Authorization': `Bearer ${token}` } });
+                const certs = await res.json();
+                const list = document.getElementById('pendingList');
+
+                if (certs.length === 0) {
+                    list.innerHTML = '<div class="card" style="padding: 4rem;"><h3>Queue Empty</h3><p style="opacity:0.7;">No issuance requests are currently awaiting approval.</p></div>';
+                    return;
+                }
+
+                list.innerHTML = '';
+                certs.forEach(cert => {
+                    list.innerHTML += `
+                        <div class="card animate-fade" style="text-align: left; display: flex; justify-content: space-between; align-items: center; padding: 2rem; border: 1px solid rgba(251, 191, 36, 0.3);">
+                            <div>
+                                <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">${cert.courseName}</h3>
+                                <p style="font-size: 0.85rem; opacity: 0.8;">Student: <strong>${cert.studentName}</strong> (${cert.rollNumber})</p>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">Requested: ${new Date(cert.requestedDate).toLocaleString()}</p>
+                            </div>
+                            <button onclick="approve('${cert._id}')" class="btn btn-primary" style="background: #fbbf24; color: #000; box-shadow: 0 10px 20px rgba(251, 191, 36, 0.3);">Approve & Mint</button>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function approve(id) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerText = 'Minting...';
+            try {
+                const res = await fetch(`/api/certificates/approve/${id}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    alert('Credential Minted Successfully!');
+                    loadPending();
+                } else {
+                    const error = await res.json();
+                    alert('Approval failed: ' + error.error);
+                }
+            } catch (err) {
+                alert('Network error');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Approve & Mint';
+            }
+        }
+
+        loadPending();
+    </script>
+</body>
+
+</html>
