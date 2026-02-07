@@ -1,0 +1,8 @@
+node_modules/
+.env
+.mongo_temp/
+build/
+*.log
+.DS_Store
+uploads/
+.ganache_db/
