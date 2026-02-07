@@ -1,0 +1,9 @@
+# MongoDB
+.mongo_temp/
+*.lock
+
+# Node
+node_modules/
+
+# Logs
+*.log
