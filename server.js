@@ -8,12 +8,17 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const authRoutes = require('./routes/auth');
 const certificateRoutes = require('./routes/certificate');
 
+const path = require('path');
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 app.get('/download-csv', async (req, res) => {
     try {
