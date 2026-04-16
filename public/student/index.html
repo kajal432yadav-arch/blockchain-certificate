@@ -107,7 +107,7 @@
 
         .cert-details {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
@@ -141,7 +141,7 @@
 
         .action-buttons {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 0.75rem;
         }
 
@@ -368,9 +368,13 @@
 
                         <div class="action-buttons">
                             <button class="action-btn pdf" onclick="downloadPDF('${cert._id}', '${cert.courseName}')">PDF</button>
-                            <a href="${cert.photoUrl || '/api/certificates/photo/' + cert._id}" target="_blank" class="action-btn photo">Photo</a>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <a href="${cert.photoUrl || '/api/certificates/photo/' + cert._id}" target="_blank" class="action-btn photo">View Photo</a>
+                                <button class="action-btn photo" style="background: #333; font-size: 0.75rem; padding: 0.5rem;" onclick="triggerPhotoUpdate('${cert._id}')">Update Photo</button>
+                            </div>
                             <button class="action-btn qr" onclick="showQR('${cert.qrCode}', '${cert.certificateId}')">QR Code</button>
                         </div>
+                        <input type="file" id="photo-input-${cert._id}" style="display: none;" accept="image/*" onchange="uploadPhoto('${cert._id}', this.files[0])">
 
                         <!-- Hidden PDF Template -->
                         <div id="pdf-${cert._id}" class="pdf-template">
@@ -465,6 +469,36 @@
             } catch (err) {
                 console.error(err);
                 alert('Error toggling privacy');
+            }
+        }
+
+        function triggerPhotoUpdate(certId) {
+            document.getElementById(`photo-input-${certId}`).click();
+        }
+
+        async function uploadPhoto(certId, file) {
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('photo', file);
+
+            try {
+                const res = await fetch(`/api/certificates/update-photo/${certId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    alert('Photo updated successfully!');
+                    loadCertificates(); // Reload to update links
+                } else {
+                    alert('Failed to update photo: ' + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error uploading photo');
             }
         }
 

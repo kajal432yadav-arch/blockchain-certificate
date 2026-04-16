@@ -6,6 +6,19 @@
         "mongodb_setup.md",
         "walkthrough.md",
         "task.md",
-        "implementation_plan.md"
+        "implementation_plan.md",
+        ".mongo_temp*",
+        ".mongo_data",
+        "*.log",
+        "node_modules",
+        "test_*.js",
+        "uploads",
+        "dummy*",
+        "*.csv",
+        "*.webp",
+        "*.png",
+        "*.jpg",
+        "*.jpeg",
+        "*.pdf"
     ]
 }

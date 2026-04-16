@@ -43,13 +43,13 @@
                 list.innerHTML = '';
                 certs.forEach(cert => {
                     list.innerHTML += `
-                        <div class="card animate-fade" style="text-align: left; display: flex; justify-content: space-between; align-items: center; padding: 2rem; border: 1px solid rgba(251, 191, 36, 0.3);">
-                            <div>
+                        <div class="card animate-fade" style="text-align: left; display: flex; justify-content: space-between; align-items: center; padding: 2rem; border: 1px solid rgba(251, 191, 36, 0.3); flex-wrap: wrap; gap: 1.5rem;">
+                            <div style="flex: 1; min-width: 200px;">
                                 <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">${cert.courseName}</h3>
                                 <p style="font-size: 0.85rem; opacity: 0.8;">Student: <strong>${cert.studentName}</strong> (${cert.rollNumber})</p>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">Requested: ${new Date(cert.requestedDate).toLocaleString()}</p>
                             </div>
-                            <button onclick="approve('${cert._id}')" class="btn btn-primary" style="background: #fbbf24; color: #000; box-shadow: 0 10px 20px rgba(251, 191, 36, 0.3);">Approve & Mint</button>
+                            <button onclick="approve('${cert._id}')" class="btn btn-primary" style="background: #fbbf24; color: #000; box-shadow: 0 10px 20px rgba(251, 191, 36, 0.3); min-width: 151px;">Approve & Mint</button>
                         </div>
                     `;
                 });

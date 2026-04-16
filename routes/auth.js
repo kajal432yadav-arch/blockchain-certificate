@@ -39,16 +39,22 @@ router.post('/register', async (req, res) => {
 // Login - supports both email and roll number
 router.post('/login', async (req, res) => {
     try {
-        const { email, password, rollNumber } = req.body;
+        const { email, password, rollNumber, identity } = req.body;
         
-        let user;
-        if (rollNumber) {
-            // Login with roll number (for students)
-            user = await User.findOne({ rollNumber });
-        } else if (email) {
-            // Login with email (for admins or students)
-            user = await User.findOne({ email });
+        // Identity fallback: allow a single 'identity' field or specific fields
+        const identifier = identity || email || rollNumber;
+        
+        if (!identifier) {
+            return res.status(400).json({ error: 'Please provide Email or Roll Number.' });
         }
+
+        // Universal search: find by either Email OR Roll Number
+        const user = await User.findOne({
+            $or: [
+                { email: identifier },
+                { rollNumber: identifier }
+            ]
+        });
         
         if (!user) {
             return res.status(401).json({ error: 'User not found. Please check your credentials.' });

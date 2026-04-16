@@ -283,14 +283,14 @@
                     </div>
                     <div class="form-field">
                         <label>Student ID / Roll Number</label>
-                        <input type="text" id="rollNumber" placeholder="e.g., 20CE1001" readonly>
+                        <input type="text" id="rollNumber" placeholder="e.g., 20CE1001">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-field">
                         <label>Department</label>
-                        <input type="text" id="department" placeholder="e.g., CSE" readonly>
+                        <input type="text" id="department" placeholder="e.g., CSE">
                     </div>
                     <div class="form-field">
                         <label>Percentage / GPA</label>
@@ -430,9 +430,11 @@
         document.getElementById('issueForm').onsubmit = async (e) => {
             e.preventDefault();
 
-            const studentId = document.getElementById('studentId').value;
-            if (!studentId) {
-                alert('Please select a student from the list');
+            let studentId = document.getElementById('studentId').value;
+            const studentSearch = document.getElementById('studentSearch').value;
+            
+            if (!studentId && !studentSearch) {
+                alert('Please provide a Student Name');
                 return;
             }
 
@@ -448,6 +450,7 @@
 
             const formData = new FormData();
             formData.append('studentId', studentId);
+            formData.append('studentSearch', studentSearch);
             formData.append('rollNumber', document.getElementById('rollNumber').value);
             formData.append('courseName', document.getElementById('courseName').value);
             formData.append('university', document.getElementById('university').value);
@@ -471,6 +474,11 @@
                 const result = await res.json();
                 if (res.ok) {
                     alert('Certificate issued successfully!\nHash: ' + (result.txHash || result.certificateId));
+                    
+                    // Automatically generate and open the certificate page!
+                    const certUrl = `/certificate_template.html?name=${encodeURIComponent(document.getElementById('studentSearch').value)}&course=${encodeURIComponent(document.getElementById('courseName').value || 'Bachelor of Technology')}&university=${encodeURIComponent(document.getElementById('university').value || 'IEEE Xpert Global University')}&print=true`;
+                    window.open(certUrl, '_blank');
+
                     location.href = '/admin/index.html';
                 } else {
                     alert('Error: ' + (result.error || 'Failed to issue certificate'));

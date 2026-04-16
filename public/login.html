@@ -165,8 +165,8 @@
 
         <form id="loginForm">
             <div class="form-field">
-                <label>Roll Number</label>
-                <input type="text" id="rollNumber" placeholder="Enter your unique Roll Number" required>
+                <label id="identityLabel">Email or Roll Number</label>
+                <input type="text" id="identity" placeholder="Enter Email or Roll Number" required>
             </div>
             <div class="form-field">
                 <label>Password</label>
@@ -184,7 +184,7 @@
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
 
-            const rollNumber = document.getElementById('rollNumber').value.trim();
+            const identity = document.getElementById('identity').value.trim();
             const password = document.getElementById('password').value;
             const btn = document.getElementById('loginBtn');
 
@@ -195,7 +195,7 @@
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ rollNumber, password })
+                    body: JSON.stringify({ identity, password })
                 });
 
                 const data = await res.json();

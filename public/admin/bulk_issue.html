@@ -21,6 +21,9 @@
             <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.05em;">Bulk <span
                     style="color: #10b981;">Issuance</span></h1>
             <p style="opacity: 0.7; margin-top: 0.5rem;">Upload CSV to issue certificates at institutional scale.</p>
+            <button onclick="downloadStudentCsv()" class="btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; margin-top: 1rem; padding: 0.5rem 1rem;">
+                ⬇️ Download All Students CSV
+            </button>
         </header>
 
         <div class="card" style="max-width: 800px; margin: 0 auto; padding: 3rem;">
@@ -77,18 +80,49 @@
 
         let batchData = [];
         let existingCerts = [];
+        let studentsMap = {};
 
         // Load students and existing certs to verify IDs and duplicates
         async function init() {
-            const [stdRes, certRes] = await Promise.all([
-                fetch('/api/certificates/students', { headers: { 'Authorization': `Bearer ${token}` } }),
-                fetch('/api/certificates/all', { headers: { 'Authorization': `Bearer ${token}` } })
-            ]);
-            const students = await stdRes.json();
-            existingCerts = await certRes.json();
-            students.forEach(s => studentsMap[s.rollNumber] = s);
+            try {
+                const [stdRes, certRes] = await Promise.all([
+                    fetch('/api/certificates/students', { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch('/api/certificates/all', { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
+                const students = await stdRes.json();
+                existingCerts = await certRes.json();
+                
+                if (Array.isArray(students)) {
+                    students.forEach(s => studentsMap[s.rollNumber] = s);
+                    window.allStudentsForCsv = students;
+                } else {
+                    window.allStudentsForCsv = [];
+                }
+            } catch (err) {
+                console.error("Initialization error:", err);
+                window.allStudentsForCsv = [];
+            }
         }
         init();
+
+        function downloadStudentCsv() {
+            if (!window.allStudentsForCsv || window.allStudentsForCsv.length === 0) {
+                alert("No students found to export!");
+                return;
+            }
+            let csv = "rollNumber,courseName,university\n";
+            window.allStudentsForCsv.forEach(s => {
+                csv += `${s.rollNumber || 'NO_ROLL'},Blockchain Engineering Specialization,IEEE Xpert Global University\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'all_students_batch.csv');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
 
         dropZone.onclick = () => fileInput.click();
         fileInput.onchange = (e) => handleFile(e.target.files[0]);
@@ -134,7 +168,7 @@
         }
 
         processBtn.onclick = async () => {
-            if (!confirm(`Issue ${batchData.length} certificates? This will stage them for governance approval.`)) return;
+            if (!confirm(`Issue ${batchData.length} certificates? This will instantly mint them to the blockchain.`)) return;
 
             processBtn.disabled = true;
             document.getElementById('progress-section').style.display = 'block';
@@ -157,9 +191,10 @@
                         body: JSON.stringify({
                             studentId: student._id,
                             studentName: student.name,
+                            rollNumber: student.rollNumber,
                             courseName: row.courseName,
                             university: row.university || 'IEEE Xpert Global University',
-                            requestOnly: true // Governance Mode
+                            requestOnly: false // AUTOMATIC MINTING
                         })
                     });
 
@@ -173,8 +208,8 @@
                 status.innerText = `Processing: ${i + 1} / ${batchData.length}`;
             }
 
-            alert('Batch requests staged for approval!');
-            location.href = '/admin/approvals.html';
+            alert('Batch successfully minted directly to the Blockchain!');
+            location.href = '/admin/index.html';
         };
     </script>
 </body>

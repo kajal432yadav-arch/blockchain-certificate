@@ -153,21 +153,23 @@
     </div>
 
     <div class="container animate-fade">
-        <table class="records-table">
-            <thead>
-                <tr>
-                    <th>Student Name</th>
-                    <th>Roll Number</th>
-                    <th>Department</th>
-                    <th>Certificates Issued</th>
-                </tr>
-            </thead>
-            <tbody id="recordsBody">
-                <tr class="loading-row">
-                    <td colspan="4">Loading student records...</td>
-                </tr>
-            </tbody>
-        </table>
+        <div style="overflow-x: auto; width: 100%; border-radius: 20px;">
+            <table class="records-table">
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Roll Number</th>
+                        <th>Department</th>
+                        <th>Certificates Issued</th>
+                    </tr>
+                </thead>
+                <tbody id="recordsBody">
+                    <tr class="loading-row">
+                        <td colspan="4">Loading student records...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>

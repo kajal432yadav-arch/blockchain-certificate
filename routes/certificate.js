@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const { Web3 } = require('web3');
 const multer = require('multer');
 const path = require('path');
@@ -6,12 +7,16 @@ const fs = require('fs');
 const Certificate = require('../models/Certificate');
 const User = require('../models/User');
 const router = express.Router();
-const registryArtifact = require('../build/contracts/CertificateRegistry.json');
+const getRegistryArtifact = () => {
+    const artifactPath = path.join(__dirname, '../build/contracts/CertificateRegistry.json');
+    return JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+};
+
 const { authMiddleware, isAdmin } = require('./middleware');
 const QRCode = require('qrcode');
 const crypto = require('crypto');
 
-const web3 = new Web3(process.env.ETH_RPC_URL);
+let web3 = new Web3(process.env.ETH_RPC_URL);
 
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
@@ -85,7 +90,7 @@ router.post('/approve/:id', authMiddleware, isAdmin, async (req, res) => {
         const tx = await contract.methods.issueCertificate(
             realCertId, cert.rollNumber || 'N/A', cert.department || 'General', 
             cert.studentName, cert.courseName, cert.university, web3.utils.keccak256(realCertId)
-        ).send({ from: accounts[0], gas: 3000000 });
+        ).send({ from: accounts[0], gas: 3000000n });
 
         const verifyUrl = `${req.protocol}://${req.get('host')}/verifier/verify.html?id=${realCertId}`;
         const qrCodeDataUri = await QRCode.toDataURL(verifyUrl);
@@ -107,16 +112,93 @@ router.post('/approve/:id', authMiddleware, isAdmin, async (req, res) => {
 // Contract instance (needs to be initialized after deployment)
 // Contract instance
 const getContract = async () => {
-    const address = process.env.CONTRACT_ADDRESS;
-    if (!address) {
-        const networkId = await web3.eth.net.getId();
-        const deployedNetwork = registryArtifact.networks[networkId];
-        return new web3.eth.Contract(
-            registryArtifact.abi,
-            deployedNetwork && deployedNetwork.address
-        );
+    const ports = [7545, 8545];
+    let selectedWeb3 = null;
+    let networkId = null;
+
+    // 1. Find a working Ganache port
+    for (const port of ports) {
+        try {
+            const tempWeb3 = new Web3(`http://127.0.0.1:${port}`);
+            networkId = await tempWeb3.eth.net.getId();
+            selectedWeb3 = tempWeb3;
+            console.log(`📡 Connected to Ganache on port ${port} (Network ID: ${networkId})`);
+            fs.writeFileSync(path.join(__dirname, '../ganache_port.log'), port.toString());
+            break;
+        } catch (e) {
+            continue;
+        }
     }
-    return new web3.eth.Contract(registryArtifact.abi, address);
+
+    if (!selectedWeb3) throw new Error('Could not connect to Ganache on port 7545 or 8545');
+
+    // Update global web3 for consistency in accounts/utils
+    web3 = selectedWeb3;
+
+    // 2. Check for existing deployment
+    let address = process.env.CONTRACT_ADDRESS;
+    const registryArtifact = getRegistryArtifact();
+    const deployedNetwork = registryArtifact.networks[networkId];
+    
+    if (!address && deployedNetwork) {
+        address = deployedNetwork.address;
+    }
+
+    // 3. If address found, verify it responds (prevent "ghost" deployments after Ganache reset)
+    if (address) {
+        try {
+            const contract = new selectedWeb3.eth.Contract(registryArtifact.abi, address);
+            await contract.methods.owner().call(); // Probe call
+            console.log(`✅ Valid contract found at ${address}`);
+        } catch (e) {
+            console.warn(`⚠️ Ghost deployment detected at ${address} (reset occurred?). Invalidating address...`);
+            address = null;
+        }
+    }
+
+    // 4. If no valid address, DEPLOY the contract automatically
+    if (!address) {
+        console.log('🚀 Contract not deployed on this network. Deploying now...');
+        try {
+            const accounts = await selectedWeb3.eth.getAccounts();
+            const contract = new selectedWeb3.eth.Contract(registryArtifact.abi);
+            
+            const deployTx = contract.deploy({
+                data: registryArtifact.bytecode,
+                arguments: []
+            });
+
+            const deployedContract = await deployTx.send({
+                from: accounts[0],
+                gas: 3000000n
+            });
+
+            address = deployedContract.options.address;
+            console.log(`✅ Contract deployed at: ${address}`);
+
+            // Update the artifact file in memory and on disk
+            registryArtifact.networks[networkId] = {
+                events: {},
+                links: {},
+                address: address,
+                transactionHash: deployedContract.transactionHash
+            };
+            
+            try {
+                const fs = require('fs');
+                const artifactPath = path.join(__dirname, '../build/contracts/CertificateRegistry.json');
+                fs.writeFileSync(artifactPath, JSON.stringify(registryArtifact, null, 2));
+                console.log('💾 Artifact updated with new deployment info.');
+            } catch (fsErr) {
+                console.warn('⚠️ Could not update artifact file, but contract is deployed in memory.');
+            }
+        } catch (deployErr) {
+            console.error('❌ Auto-deployment failed:', deployErr);
+            throw new Error('Contract not deployed and auto-deployment failed: ' + deployErr.message);
+        }
+    }
+
+    return new selectedWeb3.eth.Contract(registryArtifact.abi, address);
 };
 
 // Issue Certificate (with file uploads)
@@ -124,13 +206,37 @@ router.post('/issue', authMiddleware, isAdmin, upload.fields([
     { name: 'certificate', maxCount: 1 },
     { name: 'photo', maxCount: 1 }
 ]), async (req, res) => {
+    console.log(`📜 CERTIFICATE ISSUANCE REQUEST: Roll=${req.body.rollNumber}, StudentID=${req.body.studentId}, RequestOnly=${req.body.requestOnly}`);
     try {
-        const { studentId, rollNumber, courseName, university, department, year, grade, cgpa, requestOnly } = req.body;
+        const { studentId: reqStudentId, rollNumber, courseName, university, department, year, grade, cgpa, requestOnly } = req.body;
         
-        const student = await User.findById(studentId);
-        if (!student) return res.status(404).json({ error: 'Student not found' });
+        let student;
+        if (reqStudentId && mongoose.Types.ObjectId.isValid(reqStudentId)) {
+            student = await User.findById(reqStudentId);
+        }
+        
+        if (!student && rollNumber) {
+            student = await User.findOne({ rollNumber: rollNumber });
+        }
+
+        if (!student) {
+            console.log('🌱 Creating new student on-the-fly:', req.body.studentSearch || 'New Student');
+            const searchName = req.body.studentSearch || (rollNumber ? `Student ${rollNumber}` : 'Unnamed Student');
+            student = new User({
+                name: searchName,
+                email: (rollNumber || Math.random().toString(36).substr(2, 5)) + '@auto.com',
+                password: 'password123',
+                role: 'student',
+                rollNumber: rollNumber || 'AUTO-' + Date.now().toString().slice(-4),
+                department: department || 'General'
+            });
+            await student.save();
+        }
 
         const studentName = student.name;
+        if (!student._id) {
+            return res.status(500).json({ error: 'Student found but has no ID' });
+        }
         const studentRollNumber = rollNumber || student.rollNumber || 'N/A';
         const studentDepartment = department || student.department || 'General';
 
@@ -151,7 +257,7 @@ router.post('/issue', authMiddleware, isAdmin, upload.fields([
             const pendingId = 'PEND-' + Math.random().toString(36).substr(2, 9).toUpperCase();
             const certificate = new Certificate({ 
                 certificateId: pendingId, 
-                studentId, 
+                studentId: student._id, 
                 studentName, 
                 courseName: courseName || 'Bachelor of Technology',
                 university: university || 'IEEE University',
@@ -173,7 +279,7 @@ router.post('/issue', authMiddleware, isAdmin, upload.fields([
         // Save to MongoDB first
         const certificate = new Certificate({ 
             certificateId, 
-            studentId, 
+            studentId: student._id, 
             studentName, 
             courseName: courseName || 'Bachelor of Technology',
             university: university || 'IEEE University',
@@ -197,7 +303,7 @@ router.post('/issue', authMiddleware, isAdmin, upload.fields([
             certificateId, studentRollNumber, studentDepartment, studentName, 
             courseName || 'Bachelor of Technology', university || 'IEEE University', 
             web3.utils.keccak256(certificateId)
-        ).send({ from: accounts[0], gas: 3000000 });
+        ).send({ from: accounts[0], gas: 3000000n });
 
         // Generate QR Code data (URL for verification)
         const verifyUrl = `${req.protocol}://${req.get('host')}/verifier/verify.html?id=${certificateId}`;
@@ -220,10 +326,63 @@ router.post('/issue', authMiddleware, isAdmin, upload.fields([
     }
 });
 
+// --- Photo Operations ---
+
+// Update Certificate Photo
+router.post('/update-photo/:id', authMiddleware, upload.single('photo'), async (req, res) => {
+    console.log(`📸 Photo update request for ID: ${req.params.id}`);
+    try {
+        let cert;
+        if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+            cert = await Certificate.findById(req.params.id);
+        }
+        if (!cert) {
+            cert = await Certificate.findOne({ certificateId: req.params.id });
+        }
+
+        if (!cert) return res.status(404).json({ error: 'Certificate not found' });
+
+        // Authorization: Admin or the student who owns the certificate
+        if (req.user.role !== 'admin' && cert.studentId.toString() !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized to update this photo' });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ error: 'No photo provided' });
+        }
+
+        // Delete old photo if it exists (optional but recommended)
+        if (cert.photoUrl) {
+            const oldPath = path.join(__dirname, '..', cert.photoUrl);
+            if (fs.existsSync(oldPath)) {
+                fs.unlinkSync(oldPath);
+            }
+        }
+
+        cert.photoUrl = '/uploads/' + req.file.filename;
+        await cert.save();
+
+        res.json({ 
+            message: 'Photo updated successfully', 
+            photoUrl: cert.photoUrl 
+        });
+    } catch (err) {
+        console.error('Update photo error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Serve certificate photo
 router.get('/photo/:id', async (req, res) => {
     try {
-        const cert = await Certificate.findById(req.params.id);
+        let cert;
+        if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+            cert = await Certificate.findById(req.params.id);
+        }
+        if (!cert) {
+            cert = await Certificate.findOne({ certificateId: req.params.id });
+        }
+
         if (!cert || !cert.photoUrl) {
             return res.status(404).json({ error: 'Photo not found' });
         }
@@ -238,6 +397,8 @@ router.get('/photo/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+// --- Certificate Operations ---
 
 // Serve certificate PDF
 router.get('/pdf/:id', async (req, res) => {
@@ -303,6 +464,7 @@ router.get('/verify/:id', async (req, res) => {
             isPrivate: cert?.isPrivate || false
         });
     } catch (err) {
+        console.error('Verify error:', err);
         res.status(404).json({ error: 'Certificate not found or invalid' });
     }
 });
@@ -349,12 +511,38 @@ router.get('/students', authMiddleware, isAdmin, async (req, res) => {
     }
 });
 
+// Export All Students as CSV
+router.get('/export-students-csv', async (req, res) => {
+    try {
+        const students = await User.find({ role: 'student' });
+        let csvContent = 'rollNumber,courseName,university\n';
+        
+        students.forEach(s => {
+            // Include every student with a default course and university
+            csvContent += `${s.rollNumber || 'NO_ROLL'},Blockchain Engineering Specialization,IEEE Xpert Global University\n`;
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=all_students_batch.csv');
+        res.send(csvContent);
+    } catch (err) {
+        res.status(500).send('Error generating CSV');
+    }
+});
+
 // Headless Trust API (Enterprise Verification)
 router.get('/trust/verify/:id', async (req, res) => {
     try {
         const certificateId = req.params.id;
         const contract = await getContract();
         const result = await contract.methods.verifyCertificate(certificateId).call();
+
+        if (result.studentName === "") {
+            require('fs').appendFileSync('errors.log', `[${new Date().toISOString()}] Verification FAILED for ${certificateId}: Not found on blockchain\n`);
+            return res.status(404).json({ error: 'Certificate not found on blockchain' });
+        }
+
+        require('fs').appendFileSync('errors.log', `[${new Date().toISOString()}] Verification SUCCESS for ${certificateId}: ${result.studentName}\n`);
         
         const cert = await Certificate.findOne({ certificateId });
 

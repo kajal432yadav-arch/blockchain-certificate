@@ -15,122 +15,87 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
+app.get('/download-csv', async (req, res) => {
+    try {
+        const User = require('./models/User');
+        const students = await User.find({ role: 'student' });
+        let csvContent = 'rollNumber,courseName,university\n';
+        students.forEach(s => {
+            csvContent += `${s.rollNumber || 'NO_ROLL'},Blockchain Engineering Specialization,IEEE Xpert Global University\n`;
+        });
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=all_students_batch.csv');
+        res.send(csvContent);
+    } catch (err) {
+        res.status(500).send('Error generating CSV');
+    }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/certificates', certificateRoutes);
 
-// Catch-all 404 for API routes to prevent HTML responses
 app.use('/api', (req, res) => {
     res.status(404).json({ error: 'Endpoint not found' });
 });
 
-// Global Error Handler
 app.use((err, req, res, next) => {
     console.error('SERVER ERROR:', err);
-    if (err.name === 'MulterError') {
-        return res.status(400).json({ error: 'File Upload Error: ' + err.message });
-    }
     res.status(500).json({ error: err.message || 'Internal Server Error' });
 });
 
+const PORT = process.env.PORT || 8000;
+
 async function startServer() {
-    console.log('--- Starting Server Initialization ---');
+    console.log('--- Starting Background Initialization ---');
+    if (!process.env.MONGODB_URI) {
+        console.log('⚠️ MONGODB_URI missing. Running in MOCK MODE for Vercel.');
+        return;
+    }
+
     try {
         console.log('Attempting to connect to MongoDB...');
-        await mongoose.connect(process.env.MONGODB_URI, {
-            serverSelectionTimeoutMS: 2000
+        await mongoose.connect(process.env.MONGODB_URI, { 
+            serverSelectionTimeoutMS: 5000,
+            useNewUrlParser: true,
+            useUnifiedTopology: true
         });
         console.log('✅ Connected to MongoDB');
     } catch (err) {
-        console.log('⚠️ Local MongoDB failed, using Memory Server...');
-        try {
-            const path = require('path');
-            const fs = require('fs');
-            
-            // Clean up previous temp dir to ensure fresh state
-            const dbPath = path.join(__dirname, '.mongo_temp');
-            if (fs.existsSync(dbPath)) {
-                try {
-                    fs.rmSync(dbPath, { recursive: true, force: true });
-                } catch (e) {
-                    console.log('Note: Could not clean old db path, continuing...');
-                }
-            }
-            // Ensure directory exists
-            if (!fs.existsSync(dbPath)) {
-                fs.mkdirSync(dbPath, { recursive: true });
-            }
-
-            const mongod = await MongoMemoryServer.create({
-                instance: {
-                    dbPath: dbPath,
-                    storageEngine: 'wiredTiger'
-                }
-            });
-            const uri = mongod.getUri();
-            await mongoose.connect(uri);
-            console.log('✅ Connected to In-Memory MongoDB');
-        } catch (memErr) {
-            console.error('❌ Failed to start Memory Server:', memErr);
-            process.exit(1);
-        }
+        console.log('❌ MongoDB Connection Failed:', err.message);
+        console.log('⚠️ Running in MOCK MODE.');
     }
 
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-        console.log(`🚀 Server running on http://localhost:${PORT}`);
-    });
-
-    // Seed test accounts immediately
-    try {
-        const User = require('./models/User');
-        const count = await User.countDocuments();
-        console.log(`📊 Current user count: ${count}`);
-
-        const testAccounts = [
-            { name: 'Admin User', email: 'admin@gmail.com', password: 'password123', role: 'admin' },
-            { name: 'Test Student', email: 'student@example.com', password: 'password123', role: 'student', rollNumber: 'ABC123', department: 'CSE' },
-            { name: 'Test Verifier', email: 'verifier@example.com', password: 'password123', role: 'verifier' }
-        ];
-
-        for (const account of testAccounts) {
-            const exists = await User.findOne({ email: account.email });
-            if (!exists) {
-                console.log(`🌱 Seeding ${account.role}: ${account.email}...`);
-                await new User(account).save();
-                console.log(`✅ ${account.email} created.`);
-            } else {
-                console.log(`ℹ️ ${account.email} already exists.`);
+    // Seeding part (only if DB is connected)
+    if (mongoose.connection.readyState === 1) {
+        try {
+            const User = require('./models/User');
+            const count = await User.countDocuments();
+            if (count === 0) {
+                console.log('🌱 Seeding initial records...');
+                const testAccounts = [
+                    { name: 'Admin User', email: 'admin@gmail.com', password: 'password123', role: 'admin' },
+                    { name: 'Test Student', email: 'student@example.com', password: 'password123', role: 'student', rollNumber: 'ABC123' }
+                ];
+                for (const account of testAccounts) {
+                    await new User(account).save();
+                }
             }
+        } catch (err) {
+            console.error('❌ Seeding Error:', err.message);
         }
-        // Seed sample certificate for testing
-        const student = await User.findOne({ email: 'student@example.com' });
-        if (student) {
-            const Certificate = require('./models/Certificate');
-            const certExists = await Certificate.findOne({ studentId: student._id });
-            if (!certExists) {
-                console.log('🌱 Seeding sample certificate for student...');
-                await new Certificate({
-                    certificateId: 'CERT-2025-001',
-                    studentId: student._id,
-                    rollNumber: student.rollNumber || '20BCS001',
-                    department: student.department || 'Computer Science',
-                    studentName: student.name,
-                    courseName: 'B.Tech - Computer Science & Engineering',
-                    university: 'IEEE Xpert Global University',
-                    txHash: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
-                    qrCode: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJQAAACUCAYAAAB1Y170AAAACXBIWXMAAAsTAAALEwEAmpwYAAABNklEQVR4nO3S0Q0AIAzEwP2X7h6M4AnpL8mBfWtmZpZp5v0AA0M9A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoE89A6GeAVDPQKhnoD89A6GeAVDPQKhnoE89A6GeAVDPQMgD2X4AnrByfYoAAAAASUVORK5CYII=', // Placeholder valid-ish QR
-                    issueDate: new Date(),
-                    photoUrl: '/uploads/student.png'
-                }).save();
-                console.log('✅ Sample certificate created.');
-            }
-        }
-        console.log('--- Database Initialization Complete ---');
-    } catch (seedErr) {
-        console.error('❌ Seeding Error:', seedErr);
     }
 }
 
-startServer().catch(err => {
-    console.error('❌ Global Startup Error:', err);
-});
+// Start server only if not in a serverless environment (like Vercel)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`🚀 SERVER RUNNING ON PORT ${PORT}`);
+        startServer().catch(err => console.error('BG Error:', err));
+    });
+} else {
+    // In Vercel, we just initialize the background tasks
+    startServer().catch(err => console.error('Serverless Init Error:', err));
+}
+
+// Export for Vercel
+module.exports = app;

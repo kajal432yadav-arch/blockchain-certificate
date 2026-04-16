@@ -191,14 +191,14 @@
             </p>
 
             <!-- Quick Verify Search Bar -->
-            <div class="animate-fade" style="max-width: 700px; margin: 0 auto 4rem; animation-delay: 0.3s;">
-                <div
-                    style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem; border-radius: 100px; display: flex; backdrop-filter: blur(40px); box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);">
-                    <input type="text" id="quick-search" placeholder="Enter Certificate ID (e.g. CERT-2025-001)..."
-                        style="flex: 1; background: none; border: none; padding: 0.8rem 2rem; color: white; font-family: inherit; font-size: 1.1rem; outline: none;">
+            <div class="animate-fade" style="max-width: 700px; margin: 0 auto 4rem; animation-delay: 0.3s; padding: 0 1rem;">
+                <div class="search-wrap"
+                    style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem; border-radius: 100px; display: flex; backdrop-filter: blur(40px); box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); flex-wrap: wrap; gap: 0.5rem;">
+                    <input type="text" id="quick-search" placeholder="Enter Certificate ID..."
+                        style="flex: 1; min-width: 200px; background: none; border: none; padding: 0.8rem 1.5rem; color: white; font-family: inherit; font-size: 1rem; outline: none;">
                     <button onclick="quickVerify()" class="btn"
-                        style="background: linear-gradient(135deg, #10b981, #0891b2); border-radius: 100px; padding: 1rem 3rem; font-weight: 800; font-size: 1rem; color: white; border: none; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);">
-                        🔍 Verify Now
+                        style="background: linear-gradient(135deg, #10b981, #0891b2); border-radius: 100px; padding: 0.8rem 2rem; font-weight: 800; font-size: 0.9rem; color: white; border: none; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4); flex-shrink: 0;">
+                        🔍 Verify
                     </button>
                 </div>
                 <div style="display: flex; justify-content: center; gap: 2.5rem; margin-top: 1.5rem;">
@@ -290,7 +290,7 @@
                 style="text-align: center; font-size: 2.5rem; font-weight: 800; margin-bottom: 3rem; letter-spacing: -0.03em;">
                 Access Your <span style="color: #10b981;">Portal</span>
             </h2>
-            <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 2rem;">
+            <div class="grid" style="gap: 2rem;">
                 <!-- Admin Panel -->
                 <div class="portal-card"
                     style="background: linear-gradient(180deg, rgba(244, 63, 94, 0.1) 0%, rgba(251, 146, 60, 0.05) 100%);">

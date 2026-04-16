@@ -28,7 +28,7 @@
                 <span style="color: #10b981;">Intelligence</span>
             </h1>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 900px; margin: 0 auto;">
+            <div class="grid" style="max-width: 900px; margin: 0 auto;">
                 <div class="card"
                     style="padding: 1.5rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
                     <h3
@@ -78,13 +78,20 @@
                     style="padding: 1rem 2rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; min-width: 180px;">
                     <p
                         style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">
+                        Trust Integrity</p>
+                    <p id="stat-integrity" style="font-size: 1.8rem; font-weight: 800; color: #fbbf24;">...</p>
+                </div>
+                <div class="card"
+                    style="padding: 1rem 2rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; min-width: 180px;">
+                    <p
+                        style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">
                         Governance Queue</p>
                     <p id="stat-pending" style="font-size: 1.8rem; font-weight: 800; color: #f43f5e;">...</p>
                 </div>
             </div>
         </header>
 
-        <div class="grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="grid">
             <!-- Register Student -->
             <div class="card card-vibrant">
                 <div style="font-size: 3rem; margin-bottom: 1.5rem;">👤</div>
@@ -171,7 +178,8 @@
                 const allCerts = await trustRes.json();
                 const revoked = allCerts.filter(c => c.isRevoked).length;
                 const score = allCerts.length > 0 ? (((allCerts.length - revoked) / allCerts.length) * 100).toFixed(0) : 100;
-                document.getElementById('stat-emails').innerText = `${score}% Integrity`;
+                const integrityEl = document.getElementById('stat-integrity');
+                if (integrityEl) integrityEl.innerText = `${score}%`;
 
                 // Calculate MTTM
                 const issuedCerts = certs.filter(c => c.status === 'issued' && c.requestedDate);

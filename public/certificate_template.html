@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Template</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #111;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .certificate {
+            width: 800px;
+            height: 600px;
+            padding: 50px;
+            /* Vibrant, colorful multi-gradient background */
+            background: linear-gradient(135deg, #FFE259, #FFA751, #FF512F, #DD2476, #8E2DE2, #4A00E0);
+            background-size: 200% 200%;
+            animation: gradientMove 10s ease infinite;
+            color: white; 
+            text-align: center;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .border {
+            border: 8px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15); /* Slight glass effect */
+            backdrop-filter: blur(10px);
+            height: 100%;
+            border-radius: 24px;
+            padding: 40px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 2.8rem;
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            margin-bottom: 2rem;
+        }
+
+        .name {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .completed {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        .course {
+            font-size: 2.2rem;
+            color: #FFD700; /* Gold */
+            margin-bottom: 2rem;
+            font-weight: 900;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        }
+
+        .university {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            opacity: 0.95;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+        
+        .instructions {
+            position: absolute;
+            top: -40px;
+            color: #ccc;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div style="position: relative;">
+        <div class="instructions">📸 Take a screenshot or print this page (Ctrl+P)</div>
+        <div class="certificate" id="cert-box">
+            <div class="border">
+                <h1 class="title">CERTIFICATE OF<br>ACHIEVEMENT</h1>
+                <p class="subtitle">This is to certify that</p>
+                
+                <h2 class="name" id="cert-name">Student Name</h2>
+                
+                <p class="completed">has successfully completed</p>
+                <h2 class="course" id="cert-course">Course Name</h2>
+                
+                <p class="university" id="cert-university">IEEE Xpert Global University</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Read URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('name');
+        const course = urlParams.get('course');
+        const uni = urlParams.get('university');
+
+        // Apply parameters if they exist
+        if (name) document.getElementById('cert-name').innerText = name;
+        if (course) document.getElementById('cert-course').innerText = course;
+        if (uni) document.getElementById('cert-university').innerText = uni;
+        
+        // Auto-print after 1 second if requested
+        if (urlParams.get('print') === 'true') {
+            setTimeout(() => window.print(), 1000);
+        }
+    </script>
+</body>
+</html>
